@@ -12,14 +12,16 @@ public final class HostName {
     private static final String HOST_NAME;
 
     static {
-        String hostName;
+        InetAddress ip;
+        String hostname;
         try {
-            hostName = InetAddress.getLocalHost().getHostName();
+            ip = InetAddress.getLocalHost();
+            hostname = ip.getHostName();
         } catch (UnknownHostException e) {
             log.error(e.getMessage(), e);
-            hostName = "Unknown host";
+            hostname = "Unknown host";
         }
-        HOST_NAME = hostName;
+        HOST_NAME = hostname;
     }
 
     public static String hostName() {
