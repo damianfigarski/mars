@@ -1,0 +1,22 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav class="side-nav" #drawer mode="side" opened role="navigation">
+    <ul class="side-nav--list">
+      <li>
+        <a routerLink="/dashboard" routerLinkActive="d-menu-link--active" class="d-menu-link--basic">
+            <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/login" routerLinkActive="d-menu-link--active" class="d-menu-link--basic">
+            <span>Dashboard</span>
+        </a>
+      </li>
+    </ul>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="content-container">
+        <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

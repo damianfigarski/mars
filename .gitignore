@@ -27,3 +27,24 @@
 /.git
 /.mvn
 /logs
+
+# compiled output
+/web/dist
+/web/tmp
+/web/out-tsc
+
+# dependencies
+/web/node_modules
+
+# profiling files
+/web/chrome-profiler-events.json
+/web/speed-measure-plugin.json
+
+# IDEs and editors
+/web/.idea
+/web/.project
+/web/.classpath
+/web/.c9/
+*.launch
+/web/.settings/
+*.sublime-workspace
