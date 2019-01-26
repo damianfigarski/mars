@@ -25,8 +25,9 @@
 /.nb-gradle/
 
 /.git
-/.mvn
-/logs
+/server/.mvn
+/server/logs
+/server/target
 
 # compiled output
 /web/dist
@@ -35,6 +36,7 @@
 
 # dependencies
 /web/node_modules
+/web/node
 
 # profiling files
 /web/chrome-profiler-events.json
@@ -48,3 +50,7 @@
 *.launch
 /web/.settings/
 *.sublime-workspace
+
+# Docker
+/docker/mars-server/*.jar
+/docker/mars-web/dist

@@ -1,0 +1,24 @@
+version: '3'
+services:
+  app:
+    container_name: mars-server
+    image: mars-server:build
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://pgsql:5432/mars
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+  pgsql:
+    container_name: mars-db
+    image: mars-db:build
+    environment:
+      - POSTGRES_USER=marsdbu
+      - POSTGRES_PASSWORD=H(TL]B{eqY9dn>yY
+      - POSTGRES_DB=mars
+    ports:
+      - "5432:5432"
+  web:
+    container_name: mars-web
+    image: mars-web:build
+    ports:
+    - "80:80"
