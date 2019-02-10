@@ -1,14 +1,13 @@
 package com.doddlecode.mars.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+@Slf4j
 public final class HostName {
 
-    private static final Logger log = LoggerFactory.getLogger(HostName.class);
     private static final String HOST_NAME;
 
     static {

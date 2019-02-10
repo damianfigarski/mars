@@ -1,5 +1,10 @@
 package com.doddlecode.mars.exception.code;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public enum MarsExceptionCode {
     E001("account.is.already.enabled"),
     E002("repeated.password.do.not.match"),
@@ -16,15 +21,9 @@ public enum MarsExceptionCode {
     E013("error.occured.during.authentication"),
     E014("error.during.createtin.mime.message.helper"),
     E015("resource.not.found"),
-    E016("value.is.null");
+    E016("value.is.null"),
+    E017("jwt.is.invalid"),
+    E018("jwt.expired");
 
     private String message;
-
-    MarsExceptionCode(String message) {
-        this.message = message;
-    }
-
-    public String message() {
-        return message;
-    }
 }

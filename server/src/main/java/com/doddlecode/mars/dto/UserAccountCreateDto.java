@@ -1,21 +1,11 @@
 package com.doddlecode.mars.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Getter
-@Setter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(exclude = {"roles"})
+@Data
 public class UserAccountCreateDto {
 
     private Long userAccountId;

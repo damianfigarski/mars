@@ -1,12 +1,7 @@
 package com.doddlecode.mars.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -20,15 +15,10 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@Data
+@Builder
 @Entity
 @Table(name = "user_log", schema = "public", catalog = "mars")
-@Getter
-@Setter
-@ToString
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(exclude = {"userAccount"})
 public class UserLog implements Serializable {
 
     @Id

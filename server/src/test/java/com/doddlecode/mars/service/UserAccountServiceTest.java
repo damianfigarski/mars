@@ -4,28 +4,27 @@ import com.doddlecode.mars.entity.Role;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.entity.VerificationToken;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.repository.RoleRepository;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.repository.VerificationTokenRepository;
 import com.doddlecode.mars.service.impl.UserAccountServiceImpl;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.doddlecode.mars.util.JwtUtil;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static com.doddlecode.mars.security.SecurityConstants.EXPIRATION_TIME;
-import static com.doddlecode.mars.security.SecurityConstants.SECRET;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E007;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class UserAccountServiceTest {
 
     private final String ROLE_USER = "ROLE_USER";
@@ -66,10 +65,12 @@ public class UserAccountServiceTest {
     @Test
     public void findingUserInDatabaseByTokenGivenAsAMethodParameter() {
         // given
-        UserAccount userAccount = getBasicUser();
-        String token = generateJWTToken(userAccount);
+        Optional<UserAccount> userAccountOpt = getBasicUser();
+        UserAccount userAccount = userAccountOpt.orElseThrow(NoSuchElementException::new);
 
-        when(userAccountRepository.findByEmail(EMAIL)).thenReturn(userAccount);
+        String token = JwtUtil.buildToken(userAccount.getEmail(), Lists.emptyList());
+
+        when(userAccountRepository.findByEmail(EMAIL)).thenReturn(userAccountOpt);
 
         // when
         UserAccount userByToken = userService.getUserByToken(token);
@@ -77,13 +78,14 @@ public class UserAccountServiceTest {
         // then
         assertNotNull(userByToken);
         assertEquals(userAccount, userByToken);
-        assertEquals(userAccount.getEmail(), userByToken.getEmail());
+        assertEquals(EMAIL, userByToken.getEmail());
     }
 
-    private UserAccount getBasicUser() {
-        return UserAccount.builder()
-                .email(EMAIL)
-                .build();
+    private Optional<UserAccount> getBasicUser() {
+        return Optional.of(
+                UserAccount.builder()
+                        .email(EMAIL)
+                        .build());
     }
 
     @Test
@@ -91,7 +93,7 @@ public class UserAccountServiceTest {
         // given
         UserAccount userAccount = getUser();
         VerificationToken verificationToken = basicVerificationToken(userAccount);
-        Role role = getUserRole();
+        Optional<Role> role = getUserRole();
 
         when(bCryptPasswordEncoder.encode(any(String.class))).thenReturn(ENCODED_SECRET_PASSWORD);
         userAccount.setPassword(bCryptPasswordEncoder.encode(SECRET_PASSWORD));
@@ -117,8 +119,10 @@ public class UserAccountServiceTest {
     public void creatingUserWhichAlreadyExistInDatabase() {
         // given
         UserAccount userAccount = getUser();
+        Optional<Role> role = getUserRole();
 
         when(bCryptPasswordEncoder.encode(any(String.class))).thenReturn(ENCODED_SECRET_PASSWORD);
+        when(roleRepository.findByRoleName(ROLE_USER)).thenReturn(role);
         userAccount.setPassword(bCryptPasswordEncoder.encode(SECRET_PASSWORD));
         when(userAccountRepository.save(userAccount)).thenThrow(DataIntegrityViolationException.class);
 
@@ -128,8 +132,8 @@ public class UserAccountServiceTest {
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E007, e.getCode());
-            assertEquals(MarsExceptionCode.E007.message(), e.getCode().message());
+            assertEquals(E007, e.getCode());
+            assertEquals(E007.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -148,8 +152,8 @@ public class UserAccountServiceTest {
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E007, e.getCode());
-            assertEquals(MarsExceptionCode.E007.message(), e.getCode().message());
+            assertEquals(E007, e.getCode());
+            assertEquals(E007.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -168,18 +172,11 @@ public class UserAccountServiceTest {
                 .build();
     }
 
-    private Role getUserRole() {
-        return Role.builder()
-                .roleName(ROLE_USER)
-                .build();
-    }
-
-    private String generateJWTToken(UserAccount userAccount) {
-        return Jwts.builder()
-                .setSubject(userAccount.getEmail())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SECRET.getBytes())
-                .compact();
+    private Optional<Role> getUserRole() {
+        return Optional.of(
+                Role.builder()
+                        .roleName(ROLE_USER)
+                        .build());
     }
 
 }
