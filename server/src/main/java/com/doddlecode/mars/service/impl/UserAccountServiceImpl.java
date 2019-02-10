@@ -4,14 +4,15 @@ import com.doddlecode.mars.entity.Role;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.entity.VerificationToken;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.repository.RoleRepository;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.repository.VerificationTokenRepository;
 import com.doddlecode.mars.service.EmailService;
 import com.doddlecode.mars.service.UserAccountService;
+import com.doddlecode.mars.util.JwtUtil;
 import com.google.common.collect.Sets;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,57 +25,45 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import static com.doddlecode.mars.security.SecurityConstants.SECRET;
-import static com.doddlecode.mars.security.SecurityConstants.TOKEN_PREFIX;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E007;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E011;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E015;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E016;
 
 @Service
+@RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
-
-    @Value("mars.data.application-name")
-    private String applicationName;
-    @Value("mars.data.client.host-name")
-    private String clientHostName;
 
     private final UserAccountRepository userAccountRepository;
     private final RoleRepository roleRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final EmailService emailService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    public UserAccountServiceImpl(UserAccountRepository userAccountRepository,
-                                  RoleRepository roleRepository,
-                                  VerificationTokenRepository verificationTokenRepository,
-                                  EmailService emailService,
-                                  BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.userAccountRepository = userAccountRepository;
-        this.roleRepository = roleRepository;
-        this.verificationTokenRepository = verificationTokenRepository;
-        this.emailService = emailService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+    @Value("mars.data.application-name")
+    private String applicationName;
+    @Value("mars.data.client.host-name")
+    private String clientHostName;
 
     @Override
     public UserAccount getUserByToken(String token) throws MarsRuntimeException {
-        if (token == null) {
-            throw new MarsRuntimeException(MarsExceptionCode.E011);
-        }
+        String validToken = Optional.ofNullable(token)
+                .orElseThrow(() -> new MarsRuntimeException(E011));
+        String email = getEmailFromToken(validToken);
 
-        String email = Jwts.parser()
-                .setSigningKey(SECRET.getBytes())
-                .parseClaimsJws(token.replace(TOKEN_PREFIX, ""))
-                .getBody()
-                .getSubject();
+        return userAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new MarsRuntimeException(E015));
+    }
 
-        return userAccountRepository.findByEmail(email);
+    private String getEmailFromToken(String token) throws MarsRuntimeException {
+        return Optional.ofNullable(JwtUtil.parseToken(token))
+                .map(Claims::getSubject)
+                .orElseThrow(() -> new MarsRuntimeException(E016));
     }
 
     @Override
     public UserAccount getById(Long id) {
-        Optional<UserAccount> userAccountOptional = userAccountRepository.findById(id);
-        if (!userAccountOptional.isPresent()) {
-            throw new MarsRuntimeException(MarsExceptionCode.E012);
-        }
-        return userAccountOptional.get();
+        return userAccountRepository.findById(id)
+                .orElseThrow(() -> new MarsRuntimeException(E015));
     }
 
     @Override
@@ -86,7 +75,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             return userAccount;
         } catch (DataIntegrityViolationException e) {
-            throw new MarsRuntimeException(MarsExceptionCode.E007);
+            throw new MarsRuntimeException(E007);
         }
     }
 
@@ -97,10 +86,14 @@ public class UserAccountServiceImpl implements UserAccountService {
         userAccount.setCreated(LocalDateTime.now());
         userAccount.setEnabled(false);
 
-        Role role = roleRepository.findByRoleName("ROLE_USER");
-        Set<Role> rolesList = Sets.newHashSet(role);
-        userAccount.setRoles(rolesList);
+        userAccount.setRoles(getUserRoles());
         return userAccountRepository.save(userAccount);
+    }
+
+    private Set<Role> getUserRoles() throws MarsRuntimeException {
+        Role role = roleRepository.findByRoleName("ROLE_USER")
+                .orElseThrow(() -> new MarsRuntimeException(E015));
+        return Sets.newHashSet(role);
     }
 
     private VerificationToken saveVerificationToken(UserAccount userAccount) {
@@ -111,12 +104,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private String generateToken() {
         String token;
-        VerificationToken verificationToken;
+        Optional<VerificationToken> verificationToken;
         do {
             token = RandomStringUtils.randomAlphanumeric(20);
             verificationToken = verificationTokenRepository.findByVerificationToken(token);
-        } while (verificationToken != null);
-
+        } while (verificationToken.isPresent());
         return token;
     }
 
@@ -140,7 +132,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             return userAccountRepository.save(userAccount);
         } catch (DataIntegrityViolationException e) {
-            throw new MarsRuntimeException(MarsExceptionCode.E007);
+            throw new MarsRuntimeException(E007);
         }
     }
 

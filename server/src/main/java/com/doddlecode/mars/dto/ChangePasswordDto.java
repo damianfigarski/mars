@@ -1,20 +1,10 @@
 package com.doddlecode.mars.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter
-@Setter
-@ToString
+@Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode
 public class ChangePasswordDto {
 
     private String oldPassword;

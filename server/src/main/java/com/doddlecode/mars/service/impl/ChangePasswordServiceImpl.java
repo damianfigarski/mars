@@ -3,34 +3,31 @@ package com.doddlecode.mars.service.impl;
 import com.doddlecode.mars.dto.ChangePasswordDto;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.ChangePasswordService;
 import com.doddlecode.mars.service.UserAccountService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E002;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E010;
 import static com.doddlecode.mars.security.SecurityConstants.HEADER_STRING;
 
 @Service
+@RequiredArgsConstructor
 public class ChangePasswordServiceImpl implements ChangePasswordService {
 
     private final UserAccountService userAccountService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserAccountRepository userAccountRepository;
-
-    public ChangePasswordServiceImpl(UserAccountService userAccountService,
-                                     BCryptPasswordEncoder bCryptPasswordEncoder,
-                                     UserAccountRepository userAccountRepository) {
-        this.userAccountService = userAccountService;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.userAccountRepository = userAccountRepository;
-    }
+    private final HttpServletRequest request;
 
     @Override
-    public void changePassword(ChangePasswordDto changePasswordDto, HttpServletRequest request)
+    public void changePassword(ChangePasswordDto changePasswordDto)
             throws MarsRuntimeException {
         UserAccount userAccount = userAccountService.getUserByToken(request.getHeader(HEADER_STRING));
         checkIfOldPasswordIsCorrect(changePasswordDto, userAccount);
@@ -41,22 +38,24 @@ public class ChangePasswordServiceImpl implements ChangePasswordService {
         userAccountRepository.save(userAccount);
     }
 
-    private void checkIfOldPasswordIsCorrect(final ChangePasswordDto changePasswordDto,
-                                             final UserAccount userAccount) throws MarsRuntimeException {
+    private void checkIfOldPasswordIsCorrect(ChangePasswordDto changePasswordDto,
+                                             UserAccount userAccount) throws MarsRuntimeException {
         boolean isOldPasswordCorrect
                 = bCryptPasswordEncoder.matches(changePasswordDto.getOldPassword(), userAccount.getPassword());
 
-        if (!isOldPasswordCorrect)
-            throw new MarsRuntimeException(MarsExceptionCode.E010);
+        Optional.of(isOldPasswordCorrect)
+                .filter(Boolean::booleanValue)
+                .orElseThrow(() -> new MarsRuntimeException(E010));
     }
 
-    private void checkIfBothNewPasswordsAreTheSame(final ChangePasswordDto changePasswordDto)
+    private void checkIfBothNewPasswordsAreTheSame(ChangePasswordDto changePasswordDto)
             throws MarsRuntimeException {
         boolean bothNewPasswordsAreTheSame
                 = changePasswordDto.getNewPassword().equals(changePasswordDto.getRepeatedPassword());
 
-        if (!bothNewPasswordsAreTheSame)
-            throw new MarsRuntimeException(MarsExceptionCode.E002);
+        Optional.of(bothNewPasswordsAreTheSame)
+                .filter(Boolean::booleanValue)
+                .orElseThrow(() -> new MarsRuntimeException(E002));
     }
 
 }

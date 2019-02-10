@@ -2,11 +2,10 @@ package com.doddlecode.mars.security;
 
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
+import com.doddlecode.mars.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,27 +18,20 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
-import static com.doddlecode.mars.security.SecurityConstants.AUTHORITIES_KEY;
-import static com.doddlecode.mars.security.SecurityConstants.EXPIRATION_TIME;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E013;
 import static com.doddlecode.mars.security.SecurityConstants.HEADER_STRING;
-import static com.doddlecode.mars.security.SecurityConstants.SECRET;
 import static com.doddlecode.mars.security.SecurityConstants.TOKEN_PREFIX;
 
+@RequiredArgsConstructor
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private AuthenticationManager authenticationManager;
-
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
+    private final AuthenticationManager authenticationManager;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
-
         try {
             UserAccount creds = new ObjectMapper()
                     .readValue(request.getInputStream(), UserAccount.class);
@@ -47,16 +39,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             creds.getEmail(),
-                            creds.getPassword(),
-                            Lists.newArrayList()
+                            creds.getPassword()
                     )
             );
         } catch (IOException e) {
-            throw new MarsRuntimeException(MarsExceptionCode.E013, e);
+            throw new MarsRuntimeException(E013, e);
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
@@ -68,12 +60,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             roles.add(ga.getAuthority());
         }
 
-        String token = Jwts.builder()
-                .setSubject(((User) auth.getPrincipal()).getUsername())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .claim(AUTHORITIES_KEY, roles)
-                .signWith(SignatureAlgorithm.HS512, SECRET.getBytes())
-                .compact();
+        String username = ((User) auth.getPrincipal()).getUsername();
+        String token = JwtUtil.buildToken(username, roles);
 
         response.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
     }

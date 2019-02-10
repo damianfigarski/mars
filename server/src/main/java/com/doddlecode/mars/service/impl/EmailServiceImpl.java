@@ -1,8 +1,8 @@
 package com.doddlecode.mars.service.impl;
 
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.service.EmailService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E014;
+
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender emailSender;
-
-    public EmailServiceImpl(JavaMailSender emailSender) {
-        this.emailSender = emailSender;
-    }
 
     @Override
     public void sendSimpleMessage(String to, String subject, String text) {
@@ -39,7 +38,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(subject);
             helper.setText(text, true);
         } catch (MessagingException e) {
-            throw new MarsRuntimeException(MarsExceptionCode.E014, e);
+            throw new MarsRuntimeException(E014, e);
         }
 
         emailSender.send(message);

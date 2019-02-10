@@ -1,10 +1,9 @@
 package com.doddlecode.mars.service;
 
+import com.doddlecode.mars.dto.ForgetPasswordHelperDto;
 import com.doddlecode.mars.entity.PasswordResetToken;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
-import com.doddlecode.mars.dto.ForgetPasswordHelperDto;
 import com.doddlecode.mars.repository.PasswordResetTokenRepository;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.impl.ForgetPasswordServiceImpl;
@@ -15,19 +14,29 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E003;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E004;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E005;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E006;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ForgetPasswordServiceTest {
 
+    private final String ENCRYPTED_PASSWORD = "encrypted-password";
+    private final String CHANGED_PASSWORD = "changed-password";
+    private final String ENCRYPTED_CHANGED_PASSWORD = "encrypted-changed-password";
+    private final String TOKEN;
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Mock
@@ -36,13 +45,7 @@ public class ForgetPasswordServiceTest {
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock
     private EmailService emailService;
-
     private ForgetPasswordService forgetPasswordService;
-
-    private final String ENCRYPTED_PASSWORD = "encrypted-password";
-    private final String CHANGED_PASSWORD = "changed-password";
-    private final String ENCRYPTED_CHANGED_PASSWORD = "encrypted-changed-password";
-    private final String TOKEN;
 
     {
         TOKEN = RandomStringUtils.randomAlphanumeric(60);
@@ -62,12 +65,14 @@ public class ForgetPasswordServiceTest {
     @Test
     public void messageWithNecessaryCredentialsToChangePassword() {
         // given
-        UserAccount userAccount = getValidUser();
-        PasswordResetToken passwordResetToken = notUsedPasswordResetTokenForUser(userAccount);
+        Optional<UserAccount> userAccount = getValidUser();
+        Optional<PasswordResetToken> passwordResetToken = notUsedPasswordResetTokenForUser(
+                userAccount.orElseThrow(NoSuchElementException::new));
 
         when(userAccountRepository.findByEmail("test@test.com")).thenReturn(userAccount);
-        when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(passwordResetToken);
-        when(passwordResetTokenRepository.findByToken(any(String.class))).thenReturn(null);
+        when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(
+                passwordResetToken.orElseThrow(NoSuchElementException::new));
+        when(passwordResetTokenRepository.findByToken(any(String.class))).thenReturn(Optional.empty());
 
         // when
         forgetPasswordService.sendEmailWithChangingPasswordCredentials("test@test.com");
@@ -76,20 +81,22 @@ public class ForgetPasswordServiceTest {
     @Test
     public void messageWithNecessaryCredentialsWhenUserRequestedInvalidEmailAddressShouldThrowUserAccountNotFoundByEmailAddressException() {
         // given
-        UserAccount userAccount = getValidUser();
-        PasswordResetToken passwordResetToken = notUsedPasswordResetTokenForUser(userAccount);
+        Optional<UserAccount> userAccount = getValidUser();
+        Optional<PasswordResetToken> passwordResetToken = notUsedPasswordResetTokenForUser(
+                userAccount.orElseThrow(NoSuchElementException::new));
 
-        when(userAccountRepository.findByEmail("test@test.com")).thenReturn(null);
-        when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(passwordResetToken);
-        when(passwordResetTokenRepository.findByToken(any(String.class))).thenReturn(null);
+        when(userAccountRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
+        when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(
+                passwordResetToken.orElseThrow(NoSuchElementException::new));
+        when(passwordResetTokenRepository.findByToken(any(String.class))).thenReturn(Optional.empty());
 
         // when
         try {
             forgetPasswordService.sendEmailWithChangingPasswordCredentials("test@test.com");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E006, e.getCode());
-            assertEquals(MarsExceptionCode.E006.message(), e.getCode().message());
+            assertEquals(E006, e.getCode());
+            assertEquals(E006.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -98,7 +105,7 @@ public class ForgetPasswordServiceTest {
         // given
         ForgetPasswordHelperDto forgetPasswordHelperDto = getForgetPasswordHelperDtoWithTokenAndPassword();
         UserAccount userAccount = getValidUserWithPassword();
-        PasswordResetToken passwordResetToken = notUsedPasswordResetTokenForUser(userAccount);
+        Optional<PasswordResetToken> passwordResetToken = notUsedPasswordResetTokenForUser(userAccount);
 
         when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(passwordResetToken);
         when(bCryptPasswordEncoder.encode(CHANGED_PASSWORD)).thenReturn(ENCRYPTED_CHANGED_PASSWORD);
@@ -112,7 +119,7 @@ public class ForgetPasswordServiceTest {
         // given
         ForgetPasswordHelperDto forgetPasswordHelperDto = getForgetPasswordHelperDtoWithTokenAndPassword();
 
-        when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(null);
+        when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.empty());
 
         // when
         try {
@@ -120,8 +127,8 @@ public class ForgetPasswordServiceTest {
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E005, e.getCode());
-            assertEquals(MarsExceptionCode.E005.message(), e.getCode().message());
+            assertEquals(E005, e.getCode());
+            assertEquals(E005.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -129,7 +136,7 @@ public class ForgetPasswordServiceTest {
     public void changingPasswordWhichPasswordResetTokenWasAlreadyUsedShouldThrowPasswordResetTokenAlreadyUsedException() {
         ForgetPasswordHelperDto forgetPasswordHelperDto = getForgetPasswordHelperDtoWithTokenAndPassword();
         UserAccount userAccount = getValidUserWithPassword();
-        PasswordResetToken passwordResetToken = usedPasswordResetTokenForUser(userAccount);
+        Optional<PasswordResetToken> passwordResetToken = usedPasswordResetTokenForUser(userAccount);
 
         when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(passwordResetToken);
         when(bCryptPasswordEncoder.encode(CHANGED_PASSWORD)).thenReturn(ENCRYPTED_CHANGED_PASSWORD);
@@ -139,16 +146,16 @@ public class ForgetPasswordServiceTest {
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E003, e.getCode());
-            assertEquals(MarsExceptionCode.E003.message(), e.getCode().message());
+            assertEquals(E003, e.getCode());
+            assertEquals(E003.getMessage(), e.getCode().getMessage());
         }
     }
 
-    @Test//(expected = PasswordResetTokenDateExpiredException.class)
+    @Test
     public void changingPasswordWhichPasswordResetTokenDateExpiredShouldThrowPasswordResetTokenDateExpiredException() {
         ForgetPasswordHelperDto forgetPasswordHelperDto = getForgetPasswordHelperDtoWithTokenAndPassword();
         UserAccount userAccount = getValidUserWithPassword();
-        PasswordResetToken passwordResetToken = notUsedPasswordResetTokenForUserWithExpiredDate(userAccount);
+        Optional<PasswordResetToken> passwordResetToken = notUsedPasswordResetTokenForUserWithExpiredDate(userAccount);
 
         when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(passwordResetToken);
         when(bCryptPasswordEncoder.encode(CHANGED_PASSWORD)).thenReturn(ENCRYPTED_CHANGED_PASSWORD);
@@ -158,8 +165,8 @@ public class ForgetPasswordServiceTest {
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E004, e.getCode());
-            assertEquals(MarsExceptionCode.E004.message(), e.getCode().message());
+            assertEquals(E004, e.getCode());
+            assertEquals(E004.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -170,12 +177,13 @@ public class ForgetPasswordServiceTest {
                 .build();
     }
 
-    private UserAccount getValidUser() {
-        return UserAccount.builder()
-                .fullName("Test test")
-                .email("test@test.com")
-                .enabled(true)
-                .build();
+    private Optional<UserAccount> getValidUser() {
+        return Optional.of(
+                UserAccount.builder()
+                        .fullName("Test test")
+                        .email("test@test.com")
+                        .enabled(true)
+                        .build());
     }
 
     private UserAccount getValidUserWithPassword() {
@@ -187,34 +195,37 @@ public class ForgetPasswordServiceTest {
                 .build();
     }
 
-    private PasswordResetToken notUsedPasswordResetTokenForUser(final UserAccount userAccount) {
-        return PasswordResetToken.builder()
-                .passwordResetTokenId(RandomUtils.nextLong())
-                .token(RandomStringUtils.randomAlphanumeric(60))
-                .used(false)
-                .expiredDate(LocalDateTime.now().plusHours(24))
-                .userAccount(userAccount)
-                .build();
+    private Optional<PasswordResetToken> notUsedPasswordResetTokenForUser(UserAccount userAccount) {
+        return Optional.of(
+                PasswordResetToken.builder()
+                        .passwordResetTokenId(RandomUtils.nextLong())
+                        .token(RandomStringUtils.randomAlphanumeric(60))
+                        .used(false)
+                        .expiredDate(LocalDateTime.now().plusHours(24))
+                        .userAccount(userAccount)
+                        .build());
     }
 
-    private PasswordResetToken usedPasswordResetTokenForUser(final UserAccount userAccount) {
-        return PasswordResetToken.builder()
-                .passwordResetTokenId(RandomUtils.nextLong())
-                .token(RandomStringUtils.randomAlphanumeric(60))
-                .used(true)
-                .expiredDate(LocalDateTime.now().plusHours(24))
-                .userAccount(userAccount)
-                .build();
+    private Optional<PasswordResetToken> usedPasswordResetTokenForUser(UserAccount userAccount) {
+        return Optional.of(
+                PasswordResetToken.builder()
+                        .passwordResetTokenId(RandomUtils.nextLong())
+                        .token(RandomStringUtils.randomAlphanumeric(60))
+                        .used(true)
+                        .expiredDate(LocalDateTime.now().plusHours(24))
+                        .userAccount(userAccount)
+                        .build());
     }
 
-    private PasswordResetToken notUsedPasswordResetTokenForUserWithExpiredDate(final UserAccount userAccount) {
-        return PasswordResetToken.builder()
-                .passwordResetTokenId(RandomUtils.nextLong())
-                .token(RandomStringUtils.randomAlphanumeric(60))
-                .used(false)
-                .expiredDate(LocalDateTime.now().minusHours(24))
-                .userAccount(userAccount)
-                .build();
+    private Optional<PasswordResetToken> notUsedPasswordResetTokenForUserWithExpiredDate(UserAccount userAccount) {
+        return Optional.of(
+                PasswordResetToken.builder()
+                        .passwordResetTokenId(RandomUtils.nextLong())
+                        .token(RandomStringUtils.randomAlphanumeric(60))
+                        .used(false)
+                        .expiredDate(LocalDateTime.now().minusHours(24))
+                        .userAccount(userAccount)
+                        .build());
     }
 
 }

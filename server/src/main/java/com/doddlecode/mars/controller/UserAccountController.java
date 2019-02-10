@@ -5,6 +5,7 @@ import com.doddlecode.mars.dto.UserAccountDto;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.service.UserAccountService;
 import com.doddlecode.mars.util.RestPreconditions;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,24 +20,16 @@ import static com.doddlecode.mars.security.SecurityConstants.HEADER_STRING;
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 class UserAccountController {
 
     private final UserAccountService userAccountService;
     private final ModelMapper modelMapper;
 
-    public UserAccountController(UserAccountService userAccountService,
-                                 ModelMapper modelMapper) {
-        this.userAccountService = userAccountService;
-        this.modelMapper = modelMapper;
-    }
-
     @RequestMapping(value = "/logged-user", method = RequestMethod.GET)
     public UserAccountDto getLoggedUser(HttpServletRequest request) {
         String token = request.getHeader(HEADER_STRING);
-        UserAccount userAccount = RestPreconditions
-                .checkFound(
-                        userAccountService.getUserByToken(token)
-                );
+        UserAccount userAccount = userAccountService.getUserByToken(token);
         return modelMapper.map(userAccount, UserAccountDto.class);
     }
 
@@ -46,22 +39,16 @@ class UserAccountController {
         RestPreconditions.checkNotNull(userAccountCreateDto);
         UserAccount userAccount = modelMapper.map(userAccountCreateDto, UserAccount.class);
         UserAccount savedUserAccount = userAccountService.create(userAccount);
-
         return modelMapper.map(savedUserAccount, UserAccountDto.class);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    @ResponseStatus(HttpStatus.OK)
     public UserAccountDto update(@RequestBody UserAccountDto userAccountDto) {
         RestPreconditions.checkNotNull(userAccountDto);
-        UserAccount oldUser = RestPreconditions
-                .checkFound(
-                        userAccountService.getById(userAccountDto.getUserAccountId())
-                );
+        UserAccount oldUser = userAccountService.getById(userAccountDto.getUserAccountId());
         UserAccount userToEdit = modelMapper.map(userAccountDto, UserAccount.class);
         userToEdit.setPassword(oldUser.getPassword());
         userToEdit = userAccountService.update(userToEdit);
-
         return modelMapper.map(userToEdit, UserAccountDto.class);
     }
 

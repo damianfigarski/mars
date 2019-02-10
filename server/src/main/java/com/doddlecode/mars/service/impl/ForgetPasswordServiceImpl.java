@@ -4,11 +4,11 @@ import com.doddlecode.mars.dto.ForgetPasswordHelperDto;
 import com.doddlecode.mars.entity.PasswordResetToken;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.repository.PasswordResetTokenRepository;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.EmailService;
 import com.doddlecode.mars.service.ForgetPasswordService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,9 +16,16 @@ import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E003;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E004;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E005;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E006;
+
 @Service
+@RequiredArgsConstructor
 public class ForgetPasswordServiceImpl implements ForgetPasswordService {
 
     private final UserAccountRepository userAccountRepository;
@@ -28,25 +35,14 @@ public class ForgetPasswordServiceImpl implements ForgetPasswordService {
     @Value("mars.data.client.host-name")
     private String hostName;
 
-    public ForgetPasswordServiceImpl(UserAccountRepository userAccountRepository,
-                                     PasswordResetTokenRepository passwordResetTokenRepository,
-                                     BCryptPasswordEncoder bCryptPasswordEncoder,
-                                     EmailService emailService) {
-        this.userAccountRepository = userAccountRepository;
-        this.passwordResetTokenRepository = passwordResetTokenRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-        this.emailService = emailService;
-    }
-
     @Override
     public void sendEmailWithChangingPasswordCredentials(String email) throws MarsRuntimeException {
-        UserAccount userAccount = userAccountRepository.findByEmail(email);
-        if (userAccount == null)
-            throw new MarsRuntimeException(MarsExceptionCode.E006);
+        UserAccount userAccount = userAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new MarsRuntimeException(E006));
 
         String generatedToken = createUniqueToken();
 
-        PasswordResetToken passwordResetToken = getPasswordResetToken(generatedToken, userAccount);
+        PasswordResetToken passwordResetToken = createPasswordResetToken(generatedToken, userAccount);
         passwordResetToken = passwordResetTokenRepository.save(passwordResetToken);
 
         sendEmailToUserWithPasswordResetToken(userAccount, passwordResetToken);
@@ -54,17 +50,17 @@ public class ForgetPasswordServiceImpl implements ForgetPasswordService {
 
     private String createUniqueToken() {
         String createdToken;
-        PasswordResetToken passwordResetToken;
+        Optional<PasswordResetToken> passwordResetToken;
 
         do {
             createdToken = RandomStringUtils.randomAlphanumeric(60);
             passwordResetToken = passwordResetTokenRepository.findByToken(createdToken);
-        } while (passwordResetToken != null);
+        } while (passwordResetToken.isPresent());
 
         return createdToken;
     }
 
-    private PasswordResetToken getPasswordResetToken(String token, UserAccount userAccount) {
+    private PasswordResetToken createPasswordResetToken(String token, UserAccount userAccount) {
         return PasswordResetToken.builder()
                 .expiredDate(LocalDateTime.now().plusHours(24))
                 .token(token)
@@ -81,20 +77,40 @@ public class ForgetPasswordServiceImpl implements ForgetPasswordService {
 
     @Override
     public void forgetPassword(ForgetPasswordHelperDto forgetPasswordHelperDto) throws MarsRuntimeException {
-        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByToken(forgetPasswordHelperDto.getToken());
-        if (passwordResetToken == null)
-            throw new MarsRuntimeException(MarsExceptionCode.E005);
+        PasswordResetToken passwordResetToken = getPasswordResetToken(forgetPasswordHelperDto.getToken());
+        checkIfResetTokenWasAlreadyUsed(passwordResetToken);
 
-        if (passwordResetToken.isUsed())
-            throw new MarsRuntimeException(MarsExceptionCode.E003);
-
-        if (LocalDateTime.now().isAfter(passwordResetToken.getExpiredDate()))
-            throw new MarsRuntimeException(MarsExceptionCode.E004);
+        if (LocalDateTime.now().isAfter(passwordResetToken.getExpiredDate())) {
+            throw new MarsRuntimeException(E004);
+        }
 
         UserAccount userAccount = passwordResetToken.getUserAccount();
         String encodedPassword = bCryptPasswordEncoder.encode(forgetPasswordHelperDto.getPassword());
+        saveEditedUser(userAccount, encodedPassword);
+        saveUnusedToken(passwordResetToken);
+    }
+
+    private PasswordResetToken getPasswordResetToken(String token)
+            throws MarsRuntimeException {
+        return passwordResetTokenRepository
+                .findByToken(token)
+                .orElseThrow(() -> new MarsRuntimeException(E005));
+    }
+
+    private void checkIfResetTokenWasAlreadyUsed(PasswordResetToken passwordResetToken)
+            throws MarsRuntimeException {
+        Optional.of(passwordResetToken)
+                .map(PasswordResetToken::isUsed)
+                .filter(isUsed -> !isUsed)
+                .orElseThrow(() -> new MarsRuntimeException(E003));
+    }
+
+    private void saveEditedUser(UserAccount userAccount, String encodedPassword) {
         userAccount.setPassword(encodedPassword);
         userAccountRepository.save(userAccount);
+    }
+
+    private void saveUnusedToken(PasswordResetToken passwordResetToken) {
         passwordResetToken.setUsed(true);
         passwordResetTokenRepository.save(passwordResetToken);
     }

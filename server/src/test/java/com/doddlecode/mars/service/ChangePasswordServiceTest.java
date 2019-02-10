@@ -3,24 +3,25 @@ package com.doddlecode.mars.service;
 import com.doddlecode.mars.dto.ChangePasswordDto;
 import com.doddlecode.mars.entity.UserAccount;
 import com.doddlecode.mars.exception.MarsRuntimeException;
-import com.doddlecode.mars.exception.code.MarsExceptionCode;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.impl.ChangePasswordServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E002;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E010;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ChangePasswordServiceTest {
 
     private final String OLD_PASSWORD = "password";
@@ -29,6 +30,7 @@ public class ChangePasswordServiceTest {
     private final String ENCODED_NEW_PASSWORD = "encoded-new-password";
     private final String NEW_PASSWORD = "new-password";
     private final String REQUEST_HEADER = "request-header";
+    private final String WRONG_NEW_REPEATED_PASSWORD = "wrong-new-password";
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Mock
@@ -42,7 +44,7 @@ public class ChangePasswordServiceTest {
     @Before
     public void setUp() {
         changePasswordService = new ChangePasswordServiceImpl(userAccountService,
-                bCryptPasswordEncoder, userAccountRepository);
+                bCryptPasswordEncoder, userAccountRepository, request);
     }
 
     @Test
@@ -59,7 +61,7 @@ public class ChangePasswordServiceTest {
         when(request.getHeader(any(String.class))).thenReturn(REQUEST_HEADER);
 
         // when
-        changePasswordService.changePassword(changePasswordDto, request);
+        changePasswordService.changePassword(changePasswordDto);
     }
 
     private ChangePasswordDto getChangePasswordDto() {
@@ -86,12 +88,12 @@ public class ChangePasswordServiceTest {
 
         // when
         try {
-            changePasswordService.changePassword(changePasswordDto, request);
+            changePasswordService.changePassword(changePasswordDto);
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E010, e.getCode());
-            assertEquals(MarsExceptionCode.E010.message(), e.getCode().message());
+            assertEquals(E010, e.getCode());
+            assertEquals(E010.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -110,12 +112,12 @@ public class ChangePasswordServiceTest {
 
         // when
         try {
-            changePasswordService.changePassword(changePasswordDto, request);
+            changePasswordService.changePassword(changePasswordDto);
             fail("Should throw exception");
         } catch (MarsRuntimeException e) {
             // then
-            assertEquals(MarsExceptionCode.E002, e.getCode());
-            assertEquals(MarsExceptionCode.E002.message(), e.getCode().message());
+            assertEquals(E002, e.getCode());
+            assertEquals(E002.getMessage(), e.getCode().getMessage());
         }
     }
 
@@ -129,9 +131,9 @@ public class ChangePasswordServiceTest {
 
     private ChangePasswordDto getChangePasswordDtoWithWrongRepeatedPassword() {
         return ChangePasswordDto.builder()
-                .newPassword("new-password")
-                .repeatedPassword("wrong-new-password")
-                .oldPassword("password")
+                .newPassword(NEW_PASSWORD)
+                .repeatedPassword(WRONG_NEW_REPEATED_PASSWORD)
+                .oldPassword(OLD_PASSWORD)
                 .build();
     }
 
