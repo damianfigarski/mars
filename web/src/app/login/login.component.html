@@ -1,17 +1,45 @@
 <div class="login-container">
-  <div class="username-page-container">
-    <form class="example-form mr-top--20">
+
+  <div class="center-container animated fadeIn" *ngIf="isSignIn">
+    <form [formGroup]="signInForm" (ngSubmit)="signIn()" class="mr-top--20">
       <mat-form-field class="full-width">
-        <input matInput placeholder="Użytkownik" autocomplete="off">
+        <input matInput placeholder="Użytkownik" autocomplete="off" formControlName="username">
       </mat-form-field>
       <mat-form-field class="full-width">
-        <input type="password" matInput placeholder="Hasło">
+        <input type="password" matInput placeholder="Hasło" formControlName="password">
       </mat-form-field>
-      <button mat-flat-button color="accent" type="submit" class="full-width mr-top--20" >Zaloguj</button>
-      <div fxLayout="row" fxLayoutAlign="space-between center" class="links-container">
-        <div><a>Rejestracja</a></div>
-        <div><a>Zapomniałeś hasła?</a></div>
+      <button mat-flat-button color="accent" type="submit" class="full-width mr-top--20">Zaloguj</button>
+      <div fxLayout="columns" fxLayoutAlign="space-between center" class="links-container">
+        <div class="one-link-container">
+          <a class="link" (click)="switchToRegister()">Rejestracja</a>
+        </div>
+        <div class="one-link-container">
+          <a class="link" (click)="switchToForgetPassword()">Zapomniałeś hasła?</a>
+        </div>
       </div>
     </form>
   </div>
+
+  <div class="center-container animated fadeIn" *ngIf="isRegister">
+    <form class="mr-top--20">
+      <div fxLayout="columns" fxLayoutAlign="space-between center" class="mr-top--20">
+        <button mat-flat-button color="accent" type="submit" class="btn" >Zatwierdź</button>
+        <button mat-flat-button color="accent" type="button" class="btn" (click)="switchToSignIn()">Anuluj</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="center-container animated fadeIn" *ngIf="isForgetPassword">
+    <form class="mr-top--50">
+      <span>Wypełnij poniższe informacje. Po ich zatwierdzeniu otrzymasz email z instrukcjami.</span>
+      <mat-form-field class="full-width">
+        <input matInput placeholder="Email" autocomplete="off">
+      </mat-form-field>
+      <div fxLayout="columns" fxLayoutAlign="space-between center" class="mr-top--20">
+        <button mat-flat-button color="accent" type="submit" class="btn" >Zatwierdź</button>
+        <button mat-flat-button color="accent" type="button" class="btn" (click)="switchToSignIn()">Anuluj</button>
+      </div>
+    </form>
+  </div>
+
 </div>

@@ -66,13 +66,14 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
         return new UsernamePasswordAuthenticationToken(user, null, authorities);
     }
 
-    private String getToken(String headerKey) throws MarsRuntimeException {
+    private String getToken(String headerKey) {
         return Optional.ofNullable(headerKey)
                 .orElseThrow(() -> new MarsRuntimeException(E016));
     }
 
-    private Claims getUsernameFromToken(String token) throws MarsRuntimeException {
-        return Optional.ofNullable(JwtUtil.parseToken(token))
+    private Claims getUsernameFromToken(String token) {
+        return Optional.ofNullable(token)
+                .map(JwtUtil::parseToken)
                 .orElseThrow(() -> new MarsRuntimeException(E016));
     }
 

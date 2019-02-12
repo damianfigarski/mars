@@ -28,14 +28,13 @@
   z-index: 0;
 }
 
-.username-page-container {
+.center-container {
   background-color: #424242;
   box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
   border-radius: 2px;
   width: 100%;
   max-width: 400px;
   display: inline-block;
-  margin-top: 42px;
   vertical-align: middle;
   padding: 35px 55px 35px;
   min-height: 250px;
@@ -49,5 +48,32 @@
 }
 
 .links-container {
+  margin-top: 20px;
   font-weight: 300;
+}
+
+.one-link-container {
+  display: inline-block;
+  color: #e91e63;
+}
+
+.link:hover {
+  cursor: pointer;
+}
+
+.link:after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 1px;
+  background: #e91e63;
+  transition: width .3s;
+}
+
+.link:hover::after {
+  width: 100%;
+}
+
+.btn {
+  width: 48%;
 }

@@ -38,12 +38,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new User(user.getEmail(), user.getPassword(), authorities);
     }
 
-    private UserAccount getUser(String email) throws MarsRuntimeException {
+    private UserAccount getUser(String email) {
         return userAccountRepository.findByEmail(email)
                 .orElseThrow(() -> new MarsRuntimeException(E015));
     }
 
-    private void checkIfUserIsEnabled(UserAccount user) throws UsernameNotFoundException {
+    private void checkIfUserIsEnabled(UserAccount user) {
         Optional.ofNullable(user)
                 .map(UserAccount::isEnabled)
                 .filter(Boolean::booleanValue)

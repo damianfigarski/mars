@@ -90,15 +90,13 @@ public class ForgetPasswordServiceImpl implements ForgetPasswordService {
         saveUnusedToken(passwordResetToken);
     }
 
-    private PasswordResetToken getPasswordResetToken(String token)
-            throws MarsRuntimeException {
+    private PasswordResetToken getPasswordResetToken(String token) {
         return passwordResetTokenRepository
                 .findByToken(token)
                 .orElseThrow(() -> new MarsRuntimeException(E005));
     }
 
-    private void checkIfResetTokenWasAlreadyUsed(PasswordResetToken passwordResetToken)
-            throws MarsRuntimeException {
+    private void checkIfResetTokenWasAlreadyUsed(PasswordResetToken passwordResetToken) {
         Optional.of(passwordResetToken)
                 .map(PasswordResetToken::isUsed)
                 .filter(isUsed -> !isUsed)

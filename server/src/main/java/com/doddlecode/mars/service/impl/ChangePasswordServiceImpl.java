@@ -27,8 +27,7 @@ public class ChangePasswordServiceImpl implements ChangePasswordService {
     private final HttpServletRequest request;
 
     @Override
-    public void changePassword(ChangePasswordDto changePasswordDto)
-            throws MarsRuntimeException {
+    public void changePassword(ChangePasswordDto changePasswordDto) throws MarsRuntimeException {
         UserAccount userAccount = userAccountService.getUserByToken(request.getHeader(HEADER_STRING));
         checkIfOldPasswordIsCorrect(changePasswordDto, userAccount);
         checkIfBothNewPasswordsAreTheSame(changePasswordDto);
@@ -38,8 +37,7 @@ public class ChangePasswordServiceImpl implements ChangePasswordService {
         userAccountRepository.save(userAccount);
     }
 
-    private void checkIfOldPasswordIsCorrect(ChangePasswordDto changePasswordDto,
-                                             UserAccount userAccount) throws MarsRuntimeException {
+    private void checkIfOldPasswordIsCorrect(ChangePasswordDto changePasswordDto, UserAccount userAccount) {
         boolean isOldPasswordCorrect
                 = bCryptPasswordEncoder.matches(changePasswordDto.getOldPassword(), userAccount.getPassword());
 
@@ -48,8 +46,7 @@ public class ChangePasswordServiceImpl implements ChangePasswordService {
                 .orElseThrow(() -> new MarsRuntimeException(E010));
     }
 
-    private void checkIfBothNewPasswordsAreTheSame(ChangePasswordDto changePasswordDto)
-            throws MarsRuntimeException {
+    private void checkIfBothNewPasswordsAreTheSame(ChangePasswordDto changePasswordDto) {
         boolean bothNewPasswordsAreTheSame
                 = changePasswordDto.getNewPassword().equals(changePasswordDto.getRepeatedPassword());
 

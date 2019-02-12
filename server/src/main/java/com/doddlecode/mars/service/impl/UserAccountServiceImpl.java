@@ -54,8 +54,9 @@ public class UserAccountServiceImpl implements UserAccountService {
                 .orElseThrow(() -> new MarsRuntimeException(E015));
     }
 
-    private String getEmailFromToken(String token) throws MarsRuntimeException {
-        return Optional.ofNullable(JwtUtil.parseToken(token))
+    private String getEmailFromToken(String token) {
+        return Optional.ofNullable(token)
+                .map(JwtUtil::parseToken)
                 .map(Claims::getSubject)
                 .orElseThrow(() -> new MarsRuntimeException(E016));
     }
@@ -90,7 +91,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         return userAccountRepository.save(userAccount);
     }
 
-    private Set<Role> getUserRoles() throws MarsRuntimeException {
+    private Set<Role> getUserRoles() {
         Role role = roleRepository.findByRoleName("ROLE_USER")
                 .orElseThrow(() -> new MarsRuntimeException(E015));
         return Sets.newHashSet(role);

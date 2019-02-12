@@ -25,7 +25,8 @@
             "styles": [
               "src/styles.css",
               "src/custom-color.scss",
-              "./node_modules/roboto-fontface/css/roboto/roboto-fontface.css"
+              "./node_modules/roboto-fontface/css/roboto/roboto-fontface.css",
+              "./node_modules/animate.css/animate.css"
             ],
             "scripts": []
           },
@@ -83,7 +84,8 @@
             "styles": [
               "src/styles.css",
               "src/custom-color.scss",
-              "./node_modules/roboto-fontface/css/roboto/roboto-fontface.css"
+              "./node_modules/roboto-fontface/css/roboto/roboto-fontface.css",
+              "./node_modules/animate.css/animate.css"
             ],
             "scripts": [],
             "assets": [
