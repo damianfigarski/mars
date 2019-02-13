@@ -33,14 +33,14 @@ public class UserAccount implements Serializable {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
     @Basic
+    @Column(name = "username", nullable = false)
+    private String username;
+    @Basic
     @Column(name = "password", nullable = false)
     private String password;
     @Basic
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
-    @Basic
-    @Column(name = "full_name")
-    private String fullName;
     @Basic
     @Column(name = "created")
     private LocalDateTime created;

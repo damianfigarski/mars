@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {FormControl, FormGroup} from "@angular/forms";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {ValidationMessageService} from "../service/validation-message.service";
+import {MarsErrorStateMatcher} from "../util/mars-error-state-matcher";
 
 @Component({
   selector: 'app-login',
@@ -8,17 +10,24 @@ import {FormControl, FormGroup} from "@angular/forms";
 })
 export class LoginComponent implements OnInit {
 
+  readonly MIN_PASSWD_LENGTH = 8;
+
   isSignIn: boolean;
   isRegister: boolean;
   isForgetPassword: boolean;
 
   signInForm: FormGroup;
+  registerForm: FormGroup;
 
-  constructor() { }
+  matcher: MarsErrorStateMatcher;
+
+  constructor(public validationMessage: ValidationMessageService) { }
 
   ngOnInit() {
     this.switchToSignIn();
     this.createSignInForm();
+    this.createRegisterForm();
+    this.matcher = new MarsErrorStateMatcher();
   }
 
   switchToSignIn() {
@@ -48,6 +57,19 @@ export class LoginComponent implements OnInit {
 
   signIn() {
     console.log(this.signInForm.value);
+  }
+
+  createRegisterForm() {
+    this.registerForm = new FormGroup({
+      username: new FormControl('', [Validators.required]),
+      email: new FormControl('', [Validators.required, Validators.email]),
+      password: new FormControl('', [Validators.required, Validators.minLength(this.MIN_PASSWD_LENGTH)]),
+      confirmPassword: new FormControl('', [Validators.required, Validators.minLength(this.MIN_PASSWD_LENGTH)])
+    });
+  }
+
+  registerUser() {
+    console.log(this.registerForm.value);
   }
 
 }

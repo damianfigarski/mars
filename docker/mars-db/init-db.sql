@@ -7,7 +7,6 @@ CREATE TABLE user_account (
 	password			    VARCHAR(255) NOT NULL,
 	email				      VARCHAR(255) NOT NULL,
 	enabled				    BOOLEAN NOT NULL,
-	full_name			    VARCHAR(255) NOT NULL,
 	created				    TIMESTAMP NOT NULL,
 	PRIMARY KEY (user_account_id)
 );
@@ -38,6 +37,9 @@ ALTER TABLE user_account DROP COLUMN username;
 
 ALTER TABLE user_account
    ADD CONSTRAINT uk_email UNIQUE (email);
+
+ALTER TABLE user_account
+  ADD CONSTRAINT uk_username UNIQUE (username);
 
 CREATE TABLE verification_token (
 	verification_token_id			SERIAL NOT NULL,
