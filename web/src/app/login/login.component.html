@@ -63,13 +63,19 @@
   </div>
 
   <div class="center-container animated fadeIn" *ngIf="isForgetPassword">
-    <form class="mr-top--40">
+    <form class="mr-top--40" [formGroup]="forgetPasswordForm" (ngSubmit)="forgetPassword()">
       <span>Wypełnij poniższe informacje. Po ich zatwierdzeniu otrzymasz email z instrukcjami.</span>
       <mat-form-field class="full-width mr-top--10">
-        <input matInput placeholder="Email" autocomplete="off">
+        <input matInput placeholder="Email" autocomplete="off" formControlName="email">
+        <mat-error *ngIf="forgetPasswordForm.get('email').hasError('required')">
+          <div [innerHTML]="validationMessage.messageFor('required')" ></div>
+        </mat-error>
+        <mat-error *ngIf="forgetPasswordForm.get('email').hasError('email')">
+          <div [innerHTML]="validationMessage.messageFor('email')" ></div>
+        </mat-error>
       </mat-form-field>
       <div fxLayout="columns" fxLayoutAlign="space-between center" class="mr-top--20">
-        <button mat-flat-button color="primary" type="submit" class="btn" >Zatwierdź</button>
+        <button mat-flat-button color="primary" type="submit" class="btn" [disabled]="!forgetPasswordForm.valid">Zatwierdź</button>
         <button mat-flat-button color="primary" type="button" class="btn" (click)="switchToSignIn()">Anuluj</button>
       </div>
     </form>

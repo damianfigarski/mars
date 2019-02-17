@@ -11,7 +11,7 @@ public enum MarsExceptionCode {
     E003("password.reset.token.was.already.used.to.change.password"),
     E004("password.reset.token.date.expired"),
     E005("token.is.incorrect"),
-    E006("user.account.was.not.found.by.email"),
+    E006("user.account.was.not.found.by.username"),
     E007("user.already.exists"),
     E008("verification.token.date.expired"),
     E009("verification.token.not.found"),
@@ -23,7 +23,8 @@ public enum MarsExceptionCode {
     E015("resource.not.found"),
     E016("value.is.null"),
     E017("jwt.is.invalid"),
-    E018("jwt.expired");
+    E018("jwt.expired"),
+    E019("user.not.enabled");
 
     private String message;
 }

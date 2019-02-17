@@ -8,9 +8,11 @@ import com.doddlecode.mars.util.RestPreconditions;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,14 +28,14 @@ class UserAccountController {
     private final UserAccountService userAccountService;
     private final ModelMapper modelMapper;
 
-    @RequestMapping(value = "/logged-user", method = RequestMethod.GET)
+    @GetMapping("/logged-user")
     public UserAccountDto getLoggedUser(HttpServletRequest request) {
         String token = request.getHeader(HEADER_STRING);
         UserAccount userAccount = userAccountService.getUserByToken(token);
         return modelMapper.map(userAccount, UserAccountDto.class);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserAccountDto create(@RequestBody UserAccountCreateDto userAccountCreateDto) {
         RestPreconditions.checkNotNull(userAccountCreateDto);
@@ -42,7 +44,7 @@ class UserAccountController {
         return modelMapper.map(savedUserAccount, UserAccountDto.class);
     }
 
-    @RequestMapping(method = RequestMethod.PUT)
+    @PutMapping
     public UserAccountDto update(@RequestBody UserAccountDto userAccountDto) {
         RestPreconditions.checkNotNull(userAccountDto);
         UserAccount oldUser = userAccountService.getById(userAccountDto.getUserAccountId());

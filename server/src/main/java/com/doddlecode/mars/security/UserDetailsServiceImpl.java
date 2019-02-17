@@ -2,7 +2,6 @@ package com.doddlecode.mars.security;
 
 import com.doddlecode.mars.entity.Role;
 import com.doddlecode.mars.entity.UserAccount;
-import com.doddlecode.mars.exception.MarsRuntimeException;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.UserLogService;
 import com.google.common.collect.Lists;
@@ -18,7 +17,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static com.doddlecode.mars.exception.code.MarsExceptionCode.E015;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E006;
+import static com.doddlecode.mars.exception.code.MarsExceptionCode.E019;
 
 @Service("userDetailsService")
 @RequiredArgsConstructor
@@ -40,14 +40,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private UserAccount getUser(String username) {
         return userAccountRepository.findByUsername(username)
-                .orElseThrow(() -> new MarsRuntimeException(E015));
+                .orElseThrow(() -> new UsernameNotFoundException(E006.getMessage()));
     }
 
     private void checkIfUserIsEnabled(UserAccount user) {
         Optional.ofNullable(user)
                 .map(UserAccount::isEnabled)
                 .filter(Boolean::booleanValue)
-                .orElseThrow(() -> new UsernameNotFoundException(user.getEmail()));
+                .orElseThrow(() -> new UsernameNotFoundException(E019.getMessage()));
     }
 
     private List<GrantedAuthority> getGrantedAuthorities(UserAccount userAccount) {

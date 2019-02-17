@@ -180,7 +180,6 @@ public class ForgetPasswordServiceTest {
     private Optional<UserAccount> getValidUser() {
         return Optional.of(
                 UserAccount.builder()
-                        .fullName("Test test")
                         .email("test@test.com")
                         .enabled(true)
                         .build());
@@ -188,7 +187,6 @@ public class ForgetPasswordServiceTest {
 
     private UserAccount getValidUserWithPassword() {
         return UserAccount.builder()
-                .fullName("Test test")
                 .email("test@test.com")
                 .enabled(true)
                 .password(ENCRYPTED_PASSWORD)

@@ -33,8 +33,6 @@ CREATE TABLE user_log(
 	FOREIGN KEY (user_account_id) REFERENCES user_account(user_account_id)
 );
 
-ALTER TABLE user_account DROP COLUMN username;
-
 ALTER TABLE user_account
    ADD CONSTRAINT uk_email UNIQUE (email);
 
@@ -71,3 +69,4 @@ ALTER TABLE password_reset_token
 CREATE INDEX password_reset_token_idx ON password_reset_token(token);
 
 COPY role(role_name) FROM '/home/csv/role.csv' WITH CSV HEADER;
+COPY user_account(username, password, email, enabled, created) FROM '/home/csv/user_account.csv' WITH CSV HEADER;

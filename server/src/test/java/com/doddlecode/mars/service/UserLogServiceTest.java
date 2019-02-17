@@ -44,7 +44,6 @@ public class UserLogServiceTest {
     private UserAccount getUser() {
         return UserAccount.builder()
                 .email("test@test.com")
-                .fullName("Test test")
                 .enabled(true)
                 .build();
     }

@@ -18,6 +18,7 @@ export class LoginComponent implements OnInit {
 
   signInForm: FormGroup;
   registerForm: FormGroup;
+  forgetPasswordForm: FormGroup;
 
   matcher: MarsErrorStateMatcher;
 
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit {
     this.switchToSignIn();
     this.createSignInForm();
     this.createRegisterForm();
+    this.createForgetPasswordForm();
     this.matcher = new MarsErrorStateMatcher();
   }
 
@@ -70,6 +72,16 @@ export class LoginComponent implements OnInit {
 
   registerUser() {
     console.log(this.registerForm.value);
+  }
+
+  createForgetPasswordForm() {
+    this.forgetPasswordForm = new FormGroup({
+      email: new FormControl('', [Validators.required, Validators.email])
+    })
+  }
+
+  forgetPassword() {
+    console.log(this.forgetPasswordForm.value);
   }
 
 }

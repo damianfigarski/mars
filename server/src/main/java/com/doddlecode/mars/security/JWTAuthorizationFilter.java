@@ -50,7 +50,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
     private boolean isValidHeader(String header) {
         return Optional.ofNullable(header)
-                .filter(h -> h.startsWith(TOKEN_PREFIX))
+                .filter(h -> !h.startsWith(TOKEN_PREFIX))
                 .isPresent();
     }
 

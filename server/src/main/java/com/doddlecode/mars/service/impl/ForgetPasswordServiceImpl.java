@@ -8,6 +8,7 @@ import com.doddlecode.mars.repository.PasswordResetTokenRepository;
 import com.doddlecode.mars.repository.UserAccountRepository;
 import com.doddlecode.mars.service.EmailService;
 import com.doddlecode.mars.service.ForgetPasswordService;
+import com.doddlecode.mars.util.MessageBundleUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 import static com.doddlecode.mars.exception.code.MarsExceptionCode.E003;
 import static com.doddlecode.mars.exception.code.MarsExceptionCode.E004;
@@ -70,7 +70,7 @@ public class ForgetPasswordServiceImpl implements ForgetPasswordService {
     }
 
     private void sendEmailToUserWithPasswordResetToken(UserAccount userAccount, PasswordResetToken passwordResetToken) {
-        String message = ResourceBundle.getBundle("messages/messages").getString("email.message.forget_password");
+        String message = MessageBundleUtil.getMessage("email.message.forget_password");
         message = MessageFormat.format(message, hostName, passwordResetToken.getToken());
         emailService.sendMessage(userAccount.getEmail(), "Account activation", message);
     }

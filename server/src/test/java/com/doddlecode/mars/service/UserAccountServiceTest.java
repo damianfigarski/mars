@@ -108,7 +108,6 @@ public class UserAccountServiceTest {
         assertNotNull(savedUser);
         assertEquals(userAccount.getEmail(), savedUser.getEmail());
         assertEquals(ENCODED_SECRET_PASSWORD, savedUser.getPassword());
-        assertEquals(userAccount.getFullName(), savedUser.getFullName());
         assertNotNull(savedUser.getCreated());
         assertFalse(savedUser.isEnabled());
         assertEquals(1, savedUser.getRoles().size());
@@ -160,7 +159,6 @@ public class UserAccountServiceTest {
     private UserAccount getUser() {
         return UserAccount.builder()
                 .email(EMAIL)
-                .fullName("test user")
                 .build();
     }
 

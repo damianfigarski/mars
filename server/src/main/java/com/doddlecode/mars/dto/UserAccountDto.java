@@ -8,6 +8,7 @@ import java.util.Set;
 @Data
 public class UserAccountDto {
 
+    private Long userAccountId;
     private String email;
     private boolean enabled;
     private LocalDateTime created;

@@ -10,6 +10,7 @@ import com.doddlecode.mars.repository.VerificationTokenRepository;
 import com.doddlecode.mars.service.EmailService;
 import com.doddlecode.mars.service.UserAccountService;
 import com.doddlecode.mars.util.JwtUtil;
+import com.doddlecode.mars.util.MessageBundleUtil;
 import com.google.common.collect.Sets;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import static com.doddlecode.mars.exception.code.MarsExceptionCode.E007;
@@ -123,7 +123,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private void sendEmailToUserWithVerificationToken(VerificationToken verificationToken) {
         UserAccount userAccount = verificationToken.getUserAccount();
-        String message = ResourceBundle.getBundle("messages/messages").getString("email.message");
+        String message = MessageBundleUtil.getMessage("email.message");
         message = MessageFormat.format(message, applicationName, clientHostName, verificationToken.getVerificationToken());
         emailService.sendMessage(userAccount.getEmail(), "Account activation", message);
     }
