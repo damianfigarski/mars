@@ -14,6 +14,10 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {AngularFontAwesomeModule} from 'angular-font-awesome';
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
+import {NgHttpLoaderModule} from "ng-http-loader";
+import {AuthGuard} from "./guard/auth.guard";
+import {RequestInterceptor} from "./interceptor/request-interceptor";
 
 @NgModule({
   declarations: [
@@ -33,9 +37,18 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
     AngularFontAwesomeModule,
     FormsModule,
     ReactiveFormsModule,
-    FlexLayoutModule
+    FlexLayoutModule,
+    HttpClientModule,
+    NgHttpLoaderModule.forRoot()
   ],
-  providers: [],
+  providers: [
+    AuthGuard,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: RequestInterceptor,
+      multi: true,
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

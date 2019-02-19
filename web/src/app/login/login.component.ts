@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {ValidationMessageService} from "../service/validation-message.service";
 import {MarsErrorStateMatcher} from "../util/mars-error-state-matcher";
+import {AuthenticationService} from "../service/authentication.service";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'app-login',
@@ -22,9 +24,17 @@ export class LoginComponent implements OnInit {
 
   matcher: MarsErrorStateMatcher;
 
-  constructor(public validationMessage: ValidationMessageService) { }
+  returnUrl: string;
+
+  constructor(public validationMessage: ValidationMessageService,
+              private authenticationService: AuthenticationService,
+              private route: ActivatedRoute,
+              private router: Router) { }
 
   ngOnInit() {
+    // get return url from route parameters or default to '/'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    this.router.navigate([this.returnUrl]);
     this.switchToSignIn();
     this.createSignInForm();
     this.createRegisterForm();
@@ -58,7 +68,9 @@ export class LoginComponent implements OnInit {
   }
 
   signIn() {
-    console.log(this.signInForm.value);
+    this.authenticationService.login(this.signInForm.value).subscribe(() => {
+      this.router.navigate([this.returnUrl]);
+    });
   }
 
   createRegisterForm() {

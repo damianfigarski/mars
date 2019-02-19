@@ -5,11 +5,13 @@ import {EmptyLayoutComponent} from './layouts/empty-layout/empty-layout.componen
 import {TemplateLayoutComponent} from './layouts/template-layout/template-layout.component';
 import {DashboardComponent} from './dashboard/dashboard.component';
 import {LoginComponent} from './login/login.component';
+import {AuthGuard} from "./guard/auth.guard";
 
 const routes: Routes = [
   {
     path: '',
     component: TemplateLayoutComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'dashboard',
