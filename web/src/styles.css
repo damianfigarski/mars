@@ -56,23 +56,23 @@ body, html {
 }
 
 .my-snack-bar--success {
-  color:#ffffff;
-  background-color: #34bfa3;
+  color:#ffffff !important;
+  background-color: #34bfa3 !important;
 }
 
 .my-snack-bar--warning {
-  color:#ffffff;
-  background-color: #ffb822;
+  color:#ffffff !important;
+  background-color: #ffb822 !important;
 }
 
 .my-snack-bar--error {
-  color: #ffffff;
-  background-color: #f4516c;
+  color: #ffffff !important;
+  background-color: #f4516c !important;
 }
 
 .my-snack-bar--info {
-  color:#ffffff;
-  background-color: #36a3f7;
+  color:#ffffff !important;
+  background-color: #36a3f7 !important;
 }
 
 .full-width {

@@ -10,7 +10,7 @@ public class UserAccountDto {
 
     private Long userAccountId;
     private String email;
-    private boolean enabled;
+    private String username;
     private LocalDateTime created;
     private Set<RoleDto> roles;
 

@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {
   HttpErrorResponse,
   HttpEvent,
-  HttpHandler,
+  HttpHandler, HttpHeaders,
   HttpInterceptor,
   HttpRequest,
   HttpResponse
@@ -16,10 +16,19 @@ import {SpinnerVisibilityService} from "ng-http-loader";
 export class RequestInterceptor implements HttpInterceptor {
 
   constructor(private messageService: MessageService,
-              private spinner: SpinnerVisibilityService) {}
+              private spinner: SpinnerVisibilityService) {
+  }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     this.spinner.show();
+    let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser) {
+      request = request.clone({
+        headers: new HttpHeaders({
+          'Authorization': currentUser
+        })
+      });
+    }
     return next.handle(request)
       .pipe(
         tap(event => {
@@ -35,11 +44,11 @@ export class RequestInterceptor implements HttpInterceptor {
       );
   }
 
-  private errorIntercept(e) {
+  private errorIntercept(e) { // TODO: Logout when error is E017 or E018
     if (e.status === 401) {
-       this.messageService.error('Błędna nazwa użytkownika lub hasło', 5000);
+      this.messageService.error('Błędna nazwa użytkownika lub hasło', 5000);
     } else {
-       this.messageService.error(e.error.message, 5000);
+      this.messageService.error(e.error.message, 5000);
     }
   }
 

@@ -29,7 +29,7 @@ class UserAccountController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/logged-user")
-    public UserAccountDto getLoggedUser(HttpServletRequest request) {
+    public UserAccountDto getLoggedUser(HttpServletRequest request) { // TODO: Change to annotation
         String token = request.getHeader(HEADER_STRING);
         UserAccount userAccount = userAccountService.getUserByToken(token);
         return modelMapper.map(userAccount, UserAccountDto.class);
