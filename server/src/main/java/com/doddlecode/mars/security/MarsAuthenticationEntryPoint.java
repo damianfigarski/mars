@@ -9,7 +9,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+
+import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Slf4j
 public class MarsAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -21,8 +23,8 @@ public class MarsAuthenticationEntryPoint implements AuthenticationEntryPoint {
         log.error(e.getMessage(), e);
         ErrorDto errorDto = buildErrorDto();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        PrintWriter writer = response.getWriter();
-        writer.println(Object2Json.convert(errorDto));
+        response.addHeader(CONTENT_TYPE, APPLICATION_JSON);
+        response.getWriter().write(Object2Json.convert(errorDto));
     }
 
     private ErrorDto buildErrorDto() {

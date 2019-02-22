@@ -18,7 +18,7 @@ public class MarsExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({MarsRuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
+    @ResponseBody()
     public ErrorDto handleMarsException(MarsRuntimeException e) {
         logger.error(e.getMessage(), e);
         return buildExceptionDto(e.getCode());

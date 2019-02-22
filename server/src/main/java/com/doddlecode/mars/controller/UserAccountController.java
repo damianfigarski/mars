@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static com.doddlecode.mars.security.SecurityConstants.HEADER_STRING;
 
@@ -29,8 +28,7 @@ class UserAccountController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/logged-user")
-    public UserAccountDto getLoggedUser(HttpServletRequest request) { // TODO: Change to annotation
-        String token = request.getHeader(HEADER_STRING);
+    public UserAccountDto getLoggedUser(@RequestHeader(HEADER_STRING) String token) {
         UserAccount userAccount = userAccountService.getUserByToken(token);
         return modelMapper.map(userAccount, UserAccountDto.class);
     }
