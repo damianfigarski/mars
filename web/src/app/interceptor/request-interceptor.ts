@@ -51,12 +51,20 @@ export class RequestInterceptor implements HttpInterceptor {
       );
   }
 
-  private errorIntercept(e) { // TODO: Problem with content-type at backend side?
-    console.log(e);
-    let message = this.getProperMessage(e.message);
-    this.logoutIfNecessary(e.code);
+  private errorIntercept(e) {
+    let error = this.parseError(e);
+    let message = this.getProperMessage(error.message);
+    this.logoutIfNecessary(error.code);
 
     this.messageService.error(message, 5000);
+  }
+
+  private parseError(str) {
+    try {
+      return JSON.parse(str);
+    } catch (e) {
+      return str;
+    }
   }
 
   private getProperMessage(message) {
@@ -67,10 +75,9 @@ export class RequestInterceptor implements HttpInterceptor {
   }
 
   private logoutIfNecessary(code) {
-    console.log(E017_ERROR_CODE === code || E018_ERROR_CODE === code);
     if (E017_ERROR_CODE === code || E018_ERROR_CODE === code) {
       localStorage.removeItem('currentUser');
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/login']);
     }
   }
 
